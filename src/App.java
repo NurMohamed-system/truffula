@@ -45,5 +45,45 @@ public class App {
     // You should create a TruffulaOptions object using the args and
     // pass it to a new TruffulaPrinter that uses System.out
     // Then, call printTree on the TruffulaPrinter
+    boolean showHidden = false;
+    boolean useColor = true;
+    String path = null;
+    
+    // Parse command line arguments
+    for (String arg : args) {
+        if (arg.equals("-h")) {
+            showHidden = true;
+        } else if (arg.equals("-nc")) {
+            useColor = false;
+        } else if (!arg.startsWith("-")) {
+            if (path != null) {
+                System.err.println("Error: Multiple path arguments provided");
+                System.exit(1);
+            }
+            path = arg;
+        } else {
+            System.err.println("Error: Unknown option '" + arg + "'");
+            System.exit(1);
+        }
+    }
+    
+    // Check if path was provided
+    if (path == null) {
+        System.err.println("Error: No path argument provided");
+        System.err.println("Usage: [-h] [-nc] path");
+        System.err.println("  -h   : Show hidden files");
+        System.err.println("  -nc  : Disable color output");
+        System.exit(1);
+    }
+    
+    try {
+        // Create options and printer
+        TruffulaOptions options = new TruffulaOptions(showHidden, useColor, path);
+        TruffulaPrinter printer = new TruffulaPrinter(System.out);
+        printer.printTree(options);
+    } catch (Exception e) {
+        System.err.println("Error: " + e.getMessage());
+        System.exit(1);
+    }
   }
 }
