@@ -87,7 +87,28 @@ public class ColorPrinter {
    */
   public void print(String message, boolean reset) {
     // TODO: Implement this!
+     printStream.print(currentColor + message);
+        if (reset) printStream.print(ConsoleColor.RESET);
   }
+
+  
+    // Helper methods
+    public void print(String message) { print(message, true); }
+    public void println(String message) { println(message, true); }
+    public void println(String message, boolean reset) {
+        print(message + System.lineSeparator(), reset);
+    }
+
+    // Getters/setters
+    public ConsoleColor getCurrentColor() { return currentColor; }
+    public void setCurrentColor(ConsoleColor color) { this.currentColor = color; }
+
+    // Constructors
+    public ColorPrinter(PrintStream printStream) {
+        this(printStream, ConsoleColor.WHITE);
+    }
+
+  
 
   /**
    * Constructs a ColorPrinter with the specified PrintStream.

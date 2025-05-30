@@ -111,8 +111,36 @@ public class TruffulaPrinter {
     // - For Wave 6: Use AlphabeticalFileSorter
     // DO NOT USE SYSTEM.OUT.PRINTLN
     // USE out.println instead (will use your ColorPrinter)
-
-    out.println("printTree was called!");
-    out.println("My options are: " + options);
+    printDirectory(options.getRoot(), 0);
   }
+
+  private void printDirectory(File dir, int depth) {
+    // Skip hidden if not enabled
+    if (!options.isShowHidden() && dir.isHidden()) return;
+
+    // Set color based on depth
+    if (options.isUseColor()) {
+        out.setCurrentColor(colorSequence.get(depth % colorSequence.size()));
+    }
+
+    // Print directory name
+    out.println(dir.getName() + "/", false);
+
+    // Get and sort files
+    File[] files = dir.listFiles();
+    if (files != null) {
+        files = AlphabeticalFileSorter.sort(files);
+        
+        // Print each file/subdirectory
+        for (File file : files) {
+            if (!options.isShowHidden() && file.isHidden()) continue;
+            
+            out.print("   ".repeat(depth + 1));
+            if (file.isDirectory()) {
+                printDirectory(file, depth + 1);
+            } else {
+                out.println(file.getName());
+            }
+        }
+    }
 }

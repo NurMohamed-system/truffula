@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.PrintStream;
+
 public class App {
   
   /**
@@ -40,15 +43,18 @@ public class App {
    * 
    * Error messages will be shown for illegal arguments or a not found file
    */
+
+   // ANSI color codes
+   private static final String RESET = "\u001B[0m";
+   private static final String BLUE = "\u001B[34m";  // For directories
+   private static final String GREEN = "\u001B[32m"; // For files
+   
   public static void main(String[] args) throws Exception {
-    // TODO: Implement this
-    // You should create a TruffulaOptions object using the args and
-    // pass it to a new TruffulaPrinter that uses System.out
-    // Then, call printTree on the TruffulaPrinter
+    /// Default settings
     boolean showHidden = false;
     boolean useColor = true;
     String path = null;
-    
+
     // Parse command line arguments
     for (String arg : args) {
         if (arg.equals("-h")) {
@@ -58,32 +64,72 @@ public class App {
         } else if (!arg.startsWith("-")) {
             if (path != null) {
                 System.err.println("Error: Multiple path arguments provided");
+                printUsage();
                 System.exit(1);
             }
             path = arg;
         } else {
             System.err.println("Error: Unknown option '" + arg + "'");
+            printUsage();
             System.exit(1);
         }
     }
-    
-    // Check if path was provided
+
+    // Validate path
     if (path == null) {
-        System.err.println("Error: No path argument provided");
-        System.err.println("Usage: [-h] [-nc] path");
-        System.err.println("  -h   : Show hidden files");
-        System.err.println("  -nc  : Disable color output");
+        System.err.println("Error: No directory path provided");
+        printUsage();
         System.exit(1);
     }
-    
-    try {
-        // Create options and printer
-        TruffulaOptions options = new TruffulaOptions(showHidden, useColor, path);
-        TruffulaPrinter printer = new TruffulaPrinter(System.out);
-        printer.printTree(options);
-    } catch (Exception e) {
-        System.err.println("Error: " + e.getMessage());
+
+    File root = new File(path);
+    if (!root.exists()) {
+        System.err.println("Error: Directory does not exist: " + path);
         System.exit(1);
+    }
+
+    // Print the directory tree
+    printDirectoryTree(root, "", showHidden, useColor);
+}
+
+private static void printUsage() {
+    System.err.println("\nUsage: java App [-h] [-nc] <directory>");
+    System.err.println("Options:");
+    System.err.println("  -h    Show hidden files");
+    System.err.println("  -nc   Disable colored output");
+}
+
+private static void printDirectoryTree(File folder, String indent, boolean showHidden, boolean useColor) {
+    File[] files = folder.listFiles();
+    if (files == null) return;
+
+    for (int i = 0; i < files.length; i++) {
+        File file = files[i];
+        
+        // Skip hidden files if not showing them
+        if (file.isHidden() && !showHidden) {
+            continue;
+        }
+
+        // Print indentation and tree structure
+        System.out.print(indent);
+        System.out.print(i == files.length - 1 ? "└── " : "├── ");
+
+        // Apply color if enabled
+        if (useColor) {
+            System.out.print(file.isDirectory() ? BLUE : GREEN);
+            System.out.print(file.getName());
+            System.out.print(RESET);
+        } else {
+            System.out.print(file.getName());
+        }
+        System.out.println();
+
+        // Recursively print subdirectories
+        if (file.isDirectory()) {
+            String newIndent = indent + (i == files.length - 1 ? "    " : "│   ");
+            printDirectoryTree(file, newIndent, showHidden, useColor);
+        }
     }
   }
 }
